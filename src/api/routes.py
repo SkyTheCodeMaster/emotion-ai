@@ -7,8 +7,8 @@ from aiohttp import web
 from aiohttp.web import Response
 
 from utils.cors import add_cors_routes
-from utils.limiter import Limiter
 from utils.emotion import detect_emotion
+from utils.limiter import Limiter
 
 if TYPE_CHECKING:
   from utils.extra_request import Request

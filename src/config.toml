@@ -5,6 +5,12 @@ devmode = false
   url = "postgresql://user@ip:port/db_name"
   password = "secure_password"
 
+[ai]
+  # Comes from huggingface
+  model = "bdotloh/just-another-emotion-classifier"
+  # This model runs about 200ms for 1kb of text on Ryzen 5 3600 (3.6GHz)
+  device = "cpu"
+
 [log]
   file = ""
 

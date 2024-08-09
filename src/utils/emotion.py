@@ -46,7 +46,10 @@ def get_output(text: str) -> dict:
     return output
   else:
     result = pipe(text, top_k=999)
-    return result
+    output: dict[str,float] = {}
+    for d in result:
+      output[d["label"]] = d["score"]
+    return output
 
 
 async def detect_emotion(text: str) -> dict:

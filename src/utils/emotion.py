@@ -27,13 +27,15 @@ if not torch.cuda.is_available() and "cuda" in DEVICE:
 def get_output(text: str) -> dict:
   if len(text) > 512:
     chunks: list[str] = [text[i:i+512] for i in range(0, len(text), 512)]
-    results: list[dict] = []
+    results: list[list[dict[str,float]]] = []
     for chunk in chunks:
       results.append(pipe(chunk, top_k=999))
     
     summed_output: dict[str,tuple[float,int]] = {}
     for result in results:
-      for label, value in result.items():
+      for data in result:
+        label = data["label"]
+        value = data["score"]
         if label in summed_output:
           summed_output[label][1] += 1
           summed_output[label][0] = summed_output[label][0] + ((value-summed_output[label][0])/summed_output[label][1])

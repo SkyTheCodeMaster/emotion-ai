@@ -25,8 +25,27 @@ if not torch.cuda.is_available() and "cuda" in DEVICE:
 
 
 def get_output(text: str) -> dict:
-  result = pipe(text, top_k=999)
-  return result
+  if len(text) > 512:
+    chunks: list[str] = [text[i:i+512] for i in range(0, len(text), 512)]
+    results: list[dict] = []
+    for chunk in chunks:
+      results.append(pipe(chunk, top_k=999))
+    
+    summed_output: dict[str,tuple[float,int]] = {}
+    for result in results:
+      for label, value in result.items():
+        if label in summed_output:
+          summed_output[label][1] += 1
+          summed_output[label][0] = summed_output[label][0] + ((value-summed_output[label][0])/summed_output[label][1])
+        else:
+          summed_output[label] = (value, 1) 
+    output: dict[str,float] = {}
+    for label, data in summed_output.items():
+      output[label] = data[0]
+    return output
+  else:
+    result = pipe(text, top_k=999)
+    return result
 
 
 async def detect_emotion(text: str) -> dict:

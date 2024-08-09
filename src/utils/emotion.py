@@ -37,7 +37,7 @@ def get_output(text: str) -> dict:
         label = data["label"]
         value = data["score"]
         if label in summed_output:
-          summed_output[label][0] = (summed_output[label][0] + ((value-summed_output[label][0])/summed_output[label][1] + 1), summed_output[label][1] + 1)
+          summed_output[label] = (summed_output[label][0] + ((value-summed_output[label][0])/summed_output[label][1] + 1), summed_output[label][1] + 1)
         else:
           summed_output[label] = (value, 1) 
     output: dict[str,float] = {}

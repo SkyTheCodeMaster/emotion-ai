@@ -6,10 +6,10 @@ import tomllib
 from typing import TYPE_CHECKING
 
 import torch
-from transformers import AutoModelForSequenceClassification, AutoTokenizer
+from transformers import pipeline
 
 if TYPE_CHECKING:
-  pass
+  from transformers import TextClassificationPipeline
 
 with open("config.toml") as f:
   config = tomllib.loads(f.read())
@@ -18,27 +18,21 @@ with open("config.toml") as f:
 MODEL_ID = config["ai"]["model"]
 DEVICE = config["ai"]["device"]
 MODEL_LOCK = asyncio.Lock()
-
-tokenizer = AutoTokenizer.from_pretrained(MODEL_ID)
-model = AutoModelForSequenceClassification.from_pretrained(MODEL_ID)
+pipe: TextClassificationPipeline = pipeline("text-classification", model=MODEL_ID, device=DEVICE)
 
 if not torch.cuda.is_available() and "cuda" in DEVICE:
   raise Exception("Cuda is not available for model inference!")
 
 
-def classify(text):
-  inputs = tokenizer(text, return_tensors="pt")
-  outputs = model(**inputs)
-  probs = torch.nn.functional.softmax(outputs.logits, dim=-1)
-  return [
-    {"label": label, "score": prob.item()} for label, prob in enumerate(probs)
-  ]
+def get_output(text: str) -> dict:
+  result = pipe(text, top_k=999)
+  return result
 
 
 async def detect_emotion(text: str) -> dict:
   loop = asyncio.get_running_loop()
   async with MODEL_LOCK:
-    result = await loop.run_in_executor(None, classify, text)
+    result = await loop.run_in_executor(None, get_output, text)
   cleanup()
   return result
 

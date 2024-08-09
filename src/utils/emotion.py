@@ -9,7 +9,7 @@ import torch
 from transformers import pipeline
 
 if TYPE_CHECKING:
-  pass
+  from transformers import TextClassificationPipeline
 
 with open("config.toml") as f:
   config = tomllib.loads(f.read())
@@ -18,16 +18,15 @@ with open("config.toml") as f:
 MODEL_ID = config["ai"]["model"]
 DEVICE = config["ai"]["device"]
 MODEL_LOCK = asyncio.Lock()
-pipe = pipeline("text-classification", model=MODEL_ID, device=DEVICE)
+pipe: TextClassificationPipeline = pipeline("text-classification", model=MODEL_ID, device=DEVICE)
 
 if not torch.cuda.is_available() and "cuda" in DEVICE:
   raise Exception("Cuda is not available for model inference!")
 
 
 def get_output(text: str) -> dict:
-  result = pipe(text)
-  first = result[0]
-  return {"emotion": first["label"], "confidence": first["score"]}
+  result = pipe(text, function_to_apply="none")
+  return result
 
 
 async def detect_emotion(text: str) -> dict:
